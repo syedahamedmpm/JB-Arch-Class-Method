@@ -1,0 +1,1 @@
+# JB-Arch-Class-Method
