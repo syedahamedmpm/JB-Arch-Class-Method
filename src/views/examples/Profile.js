@@ -80,13 +80,9 @@ import { ToastContainer, toast } from 'react-toastify';
      const target=e.target
      const name=target.name
      const value=target.value
-     this.setState(prevState => ({
-       contactDetail:{
-         ...prevState.contactDetail,
-        [name]:value
-       }
-       
-     }))
+     this.setState({
+      [name]:value
+     })
      console.log(name)
      console.log(value)
    }
