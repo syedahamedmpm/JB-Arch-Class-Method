@@ -28,18 +28,29 @@ import { ToastContainer, toast } from 'react-toastify';
         email:'',
         phone:'',
         adminType:'',
-        isLoading:false
+        isLoading:false,
+        address: "",
+          city: "",
+          state: "",
+          country: "",
+          officeemail: "",
+          officephone: "",
+          about: "",
       }
     }
+    
     componentDidMount(){
       const { match, location, history } = this.props
       let token = localStorage.getItem("token");
     if(!token){
       history.push("/auth/login");
     }else{
-      this.getProfile();
+      this.getContactDetails()
+      this.getProfile()
     }
   }
+
+  
   getProfile = () =>{
     let profileId = (localStorage?.getItem("id")?.replace(/['"]+/g, ''))
    console.log(profileId)
@@ -69,9 +80,13 @@ import { ToastContainer, toast } from 'react-toastify';
      const target=e.target
      const name=target.name
      const value=target.value
-     this.setState({
-       [name]:value
-     })
+     this.setState(prevState => ({
+       contactDetail:{
+         ...prevState.contactDetail,
+        [name]:value
+       }
+       
+     }))
      console.log(name)
      console.log(value)
    }
@@ -105,10 +120,62 @@ import { ToastContainer, toast } from 'react-toastify';
       }
     })
   }
+  getContactDetails = () =>{
+    http
+    .adminGet("ContactDetail")
+    .then((resp) =>resp.json())
+    .then(data =>{
+      console.log("data", data);
+      this.setState({
+        address: data.contact.address,
+          city: data.contact.city,
+          state: data.contact.state,
+          country: data.contact.country,
+          officeemail: data.contact.email,
+          officephone: data.contact.phone,
+          about: data.contact.about,
+      })
+    })
+  }
+  handleChangeContact = (e) =>{
+    const target=e.target
+     const name=target.name
+     const value=target.value
+     this.setState({
+       [name]:value
+     })
+     console.log(name)
+     console.log(value)
+  }
+  handleSubmitContact = (event)=>{
+    event.preventDefault()
+    const contactDetail={
+      address: this.state.address,
+          city: this.state.city,
+          state:this.state.state,
+          country: this.state.country,
+          officeemail:this.state.officeemail,
+          officephone: this.state.officephone,
+          about: this.state.about,
+    }
+    console.log(contactDetail)
+    http 
+    .adminPost(contactDetail,"contactAdd")
+    .then((resp) => resp.json())
+    .then(data=>{
+      console.log(data)
+      if(data.success){
+        toast.success(data.message)
+        this.getContactDetails()
+      }else{
+        toast.error(data.messege)
+      }
+    })
+  }
     render(){
       return (
         <>
-          <UserHeader />
+          <UserHeader firstName={this.state.firstName} lastName={this.state.lastName} />
           {/* Page content */}
           <Container className="mt--7" fluid>
             <ToastContainer/>
@@ -340,11 +407,55 @@ import { ToastContainer, toast } from 'react-toastify';
                         </Row>
                       </div>
                       <hr className="my-4" />
+                      </Form>
+                      <Form onSubmit={this.handleSubmitContact}>
                       {/* Address */}
                       <h6 className="heading-small text-muted mb-4">
                         Contact information
                       </h6>
                       <div className="pl-lg-4">
+                      <Row>
+                          <Col md="6">
+                            <FormGroup>
+                              <label
+                                className="form-control-label"
+                                htmlFor="input-address"
+                              >
+                                Phone
+                              </label>
+                              <Input
+                                className="form-control-alternative"
+                                defaultValue={this.state.officephone}
+                                id="input-address"
+                                placeholder="Home Address"
+                                type="text"
+                                onChange={this.handleChangeContact}
+                                name="officephone"
+                                
+                              />
+                            </FormGroup>
+                          </Col>
+                          <Col md="6">
+                            <FormGroup>
+                              <label
+                                className="form-control-label"
+                                htmlFor="input-address"
+                              >
+                                Email
+                              </label>
+                              <Input
+                                className="form-control-alternative"
+                                defaultValue={this.state.officeemail}
+                                id="input-address"
+                                placeholder="Home Address"
+                                type="text"
+                                onChange={this.handleChangeContact}
+                                name="officeemail"
+                                
+                              />
+                            </FormGroup>
+                          </Col>
+                        </Row>
                         <Row>
                           <Col md="12">
                             <FormGroup>
@@ -356,10 +467,13 @@ import { ToastContainer, toast } from 'react-toastify';
                               </label>
                               <Input
                                 className="form-control-alternative"
-                                defaultValue="Bld Mihail Kogalniceanu, nr. 8 Bl 1, Sc 1, Ap 09"
+                                defaultValue={this.state.address}
                                 id="input-address"
                                 placeholder="Home Address"
                                 type="text"
+                                onChange={this.handleChangeContact}
+                                name="address"
+                                
                               />
                             </FormGroup>
                           </Col>
@@ -375,10 +489,33 @@ import { ToastContainer, toast } from 'react-toastify';
                               </label>
                               <Input
                                 className="form-control-alternative"
-                                defaultValue="New York"
+                                defaultValue={this.state.city}
                                 id="input-city"
                                 placeholder="City"
                                 type="text"
+                                onChange={this.handleChangeContact}
+                                name="city"
+                                
+                              />
+                            </FormGroup>
+                          </Col>
+                          <Col lg="4">
+                            <FormGroup>
+                              <label
+                                className="form-control-label"
+                                htmlFor="input-country"
+                              >
+                                State
+                              </label>
+                              <Input
+                                className="form-control-alternative"
+                                defaultValue={this.state.state}
+                                id="input-country"
+                                placeholder="Country"
+                                type="text"
+                                onChange={this.handleChangeContact}
+                                name="state"
+                                
                               />
                             </FormGroup>
                           </Col>
@@ -392,47 +529,48 @@ import { ToastContainer, toast } from 'react-toastify';
                               </label>
                               <Input
                                 className="form-control-alternative"
-                                defaultValue="United States"
-                                id="input-country"
-                                placeholder="Country"
-                                type="text"
-                              />
-                            </FormGroup>
-                          </Col>
-                          <Col lg="4">
-                            <FormGroup>
-                              <label
-                                className="form-control-label"
-                                htmlFor="input-country"
-                              >
-                                Postal code
-                              </label>
-                              <Input
-                                className="form-control-alternative"
+                                defaultValue={this.state.country}
                                 id="input-postal-code"
                                 placeholder="Postal code"
-                                type="number"
+                                type="text"
+                                onChange={this.handleChangeContact}
+                                name="country"
+                                
                               />
                             </FormGroup>
                           </Col>
                         </Row>
-                      </div>
-                      <hr className="my-4" />
-                      {/* Description */}
-                      <h6 className="heading-small text-muted mb-4">About me</h6>
-                      <div className="pl-lg-4">
+                        <Row>
+                          <Col lg="12">
                         <FormGroup>
                           <label>About Me</label>
                           <Input
                             className="form-control-alternative"
                             placeholder="A few words about you ..."
                             rows="4"
-                            defaultValue="A beautiful Dashboard for Bootstrap 4. It is Free and
-                            Open Source."
+                            defaultValue={this.state.about}
+                            onChange={this.handleChangeContact}
+                            name="about"
                             type="textarea"
                           />
                         </FormGroup>
+                      </Col>
+                      </Row>
+                      <Row>
+                          <Col lg="12">
+                          <FormGroup>
+                          <Button
+                        className="text-center"
+                        color="primary"
+                        size="sm"
+                      >
+                        Update
+                      </Button>
+                          </FormGroup>
+                          </Col>
+                        </Row>
                       </div>
+                      
                     </Form>
                   </CardBody>
                 </Card>
