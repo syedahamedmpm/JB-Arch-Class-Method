@@ -36,6 +36,8 @@ import { ToastContainer, toast } from 'react-toastify';
           officeemail: "",
           officephone: "",
           about: "",
+		  currentPassword:"",
+		  resetCurrentPassword:""
       }
     }
     
@@ -168,6 +170,43 @@ import { ToastContainer, toast } from 'react-toastify';
       }
     })
   }
+  handleChangePass = (e) => {
+	  const target=e.target
+	  const name =target.name
+	  const value=target.value
+	  this.setState({
+		  [name]:value
+	  })
+	  console.log(name)
+	  console.log(value)
+  }
+  handleResetPassSubmit = (event) =>{
+	  event.preventDefault()
+	  let body={
+		  email:this.state.email,
+		  currentPassword:this.state.currentPassword,
+		  resetCurrentPassword:this.state.resetCurrentPassword
+	  }
+	  http
+	  .adminPost(body,"changePassword")
+	  .then((resp)=>resp.json())
+	  .then(data =>{
+		  console.log(data)
+		  if(data.success){
+			  toast.success(data.message)
+			  this.getContactDetails()
+			  setTimeout(() => {
+          this.setState({
+            currentPassword:"",
+            resetCurrentPassword:""
+          })
+        }, 1000);
+		  }
+		  else{
+        toast.error(data.message)
+      }
+	  })
+  }
     render(){
       return (
         <>
@@ -237,31 +276,66 @@ import { ToastContainer, toast } from 'react-toastify';
                     </Row>
                     <div className="text-center">
                       <h3>
-                        Jessica Jones
-                        <span className="font-weight-light">, 27</span>
+                        {this.state.firstName} {this.state.lastName}
                       </h3>
                       <div className="h5 font-weight-300">
                         <i className="ni location_pin mr-2" />
-                        Bucharest, Romania
-                      </div>
-                      <div className="h5 mt-4">
-                        <i className="ni business_briefcase-24 mr-2" />
-                        Solution Manager - Creative Tim Officer
-                      </div>
-                      <div>
-                        <i className="ni education_hat mr-2" />
-                        University of Computer Science
+                        {this.state.city} {this.state.country}
                       </div>
                       <hr className="my-4" />
-                      <p>
-                        Ryan — the name taken by Melbourne-raised, Brooklyn-based
-                        Nick Murphy — writes, performs and records all of his own
-                        music.
-                      </p>
-                      <a href="#pablo" onClick={(e) => e.preventDefault()}>
-                        Show more
-                      </a>
-                    </div>
+                      <h6 className="heading-small text-muted mb-4">Change Password</h6>
+                    <Form onSubmit={this.handleResetPassSubmit}>
+					<Row>
+					<Col lg="12">
+                        <FormGroup>
+                          <label
+                            className="form-control-label"
+                            htmlFor="input-first-name"
+                          >
+                            Current Password
+                          </label>
+                          <Input
+                            className="form-control-alternative"
+                     
+                            id="input-first-name"
+                            placeholder="Current Password"
+                            type="password"
+                            onChange={this.handleChangePass}
+                            name="currentPassword"
+                            value={this.state.currentPassword}
+
+                          />
+                        </FormGroup>
+                      </Col>
+					  <Col lg="12">
+                        <FormGroup>
+                          <label
+                            className="form-control-label"
+                            htmlFor="input-last-name"
+                          >
+                            New Password
+                          </label>
+                          <Input
+                            className="form-control-alternative"
+                            id="input-last-name"
+                            placeholder="New Password"
+                            type="password"
+                            onChange={this.handleChangePass}
+                            name="resetCurrentPassword"
+                            value={this.state.resetCurrentPassword}
+                          />
+                        </FormGroup>
+                        <Button
+                      color="primary"
+                      size="sm"
+					  type="submit"
+					  >
+                         Submit
+                      </Button>
+                      </Col>
+					</Row>
+					</Form>
+					</div>
                   </CardBody>
                 </Card>
               </Col>
