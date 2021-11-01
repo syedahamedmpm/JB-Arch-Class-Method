@@ -37,8 +37,11 @@ import { ToastContainer, toast } from 'react-toastify';
           officephone: "",
           about: "",
 		  currentPassword:"",
-		  resetCurrentPassword:""
+		  resetCurrentPassword:"",
+		  profileImage:''
       }
+	  console.log(this.state.id)
+	  console.log(this.state.profileImage)
     }
     
     componentDidMount(){
@@ -47,8 +50,9 @@ import { ToastContainer, toast } from 'react-toastify';
     if(!token){
       history.push("/auth/login");
     }else{
+		this.getProfile()
       this.getContactDetails()
-      this.getProfile()
+      
     }
   }
 
@@ -68,8 +72,11 @@ import { ToastContainer, toast } from 'react-toastify';
         firstName:profile.firstName,
           lastName:profile.lastName,
           email:profile.email,
-          phone:profile.phone
+          phone:profile.phone,
+		  profileImage:profile.profileImageUrl
       })
+	  console.log(this.state.profileImage)
+	  console.log(this.state.id)
      })
      
      .catch(function (error) {
@@ -184,8 +191,8 @@ import { ToastContainer, toast } from 'react-toastify';
 	  event.preventDefault()
 	  let body={
 		  email:this.state.email,
-		  currentPassword:this.state.currentPassword,
-		  resetCurrentPassword:this.state.resetCurrentPassword
+		  password:this.state.currentPassword,
+		  resetPassword:this.state.resetCurrentPassword
 	  }
 	  http
 	  .adminPost(body,"changePassword")
@@ -207,7 +214,41 @@ import { ToastContainer, toast } from 'react-toastify';
       }
 	  })
   }
+  imgChange = (e) =>{
+	console.log(e.target.files[0])
+	var file=e.target.files[0]
+	var formData = new FormData();
+	formData.append('profileImage', file);
+	http
+	.postFormData("profileUpload?id="+this.state.id,formData)
+	.then(resp=>resp.json())
+	.then(data=>{
+		console.log(data)
+		if(data.success){
+		this.getProfile()
+       toast.success(data.message)
+     }else{
+       toast.error(data.messege)
+     }
+	})
+  }
+  removeProfilePicture = () =>{
+	  http
+	  .adminPost("","profileRemove?id="+this.state.id)
+	  .then((resp)=>resp.json())
+	  .then(data=>{
+		  console.log(data)
+		if(data.success){
+			toast.success(data.message)
+			this.getProfile()
+		}
+		  else{
+			  toast.error(data.message)
+		  }
+	  })
+  }
     render(){
+		const baseUrl = http.url()
       return (
         <>
           <UserHeader firstName={this.state.firstName} lastName={this.state.lastName} />
@@ -225,52 +266,29 @@ import { ToastContainer, toast } from 'react-toastify';
                             alt="..."
                             className="rounded-circle"
                             src={
-                              require("../../assets/img/theme/team-4-800x800.jpg")
-                                .default
+                              this.state.profileImage==""
+							  ?require("../../assets/img/theme/team-4-800x800.jpg").default
+							  :baseUrl+this.state.profileImage
                             }
                           />
                         </a>
                       </div>
                     </Col>
                   </Row>
-                  <CardHeader className="text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
-                    <div className="d-flex justify-content-between">
-                      <Button
-                        className="mr-4"
-                        color="info"
-                        href="#pablo"
-                        onClick={(e) => e.preventDefault()}
-                        size="sm"
-                      >
-                        Connect
-                      </Button>
-                      <Button
-                        className="float-right"
-                        color="default"
-                        href="#pablo"
-                        onClick={(e) => e.preventDefault()}
-                        size="sm"
-                      >
-                        Message
-                      </Button>
-                    </div>
-                  </CardHeader>
+                  
                   <CardBody className="pt-0 pt-md-4">
                     <Row>
                       <div className="col">
                         <div className="card-profile-stats d-flex justify-content-center mt-md-5">
-                          <div>
-                            <span className="heading">22</span>
-                            <span className="description">Friends</span>
-                          </div>
-                          <div>
-                            <span className="heading">10</span>
-                            <span className="description">Photos</span>
-                          </div>
-                          <div>
-                            <span className="heading">89</span>
-                            <span className="description">Comments</span>
-                          </div>
+							<Row>
+				  <Col lg="6">
+				  <input hidden id="fileUpload" type="file" name="profileImg" onChange={this.imgChange} accept="image/*" />
+				  <label color="primary" size="md" htmlFor="fileUpload">Upload Image</label>
+				  </Col>
+				  <Col lg="6">
+				  <label color="primary" size="md" onClick={this.removeProfilePicture} >Remove Profile Picture</label>
+				  </Col>
+				  </Row>
                         </div>
                       </div>
                     </Row>
