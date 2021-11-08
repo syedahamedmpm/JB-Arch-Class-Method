@@ -38,12 +38,23 @@ class projectImage extends Component{
         this.state = {
           activeTab: '1',
           allSearch:'',
-          projectList:[]
+          projectList:[],
+          interiorProjectList:[],
+          exteriorProjectList:[],
+          consultantProjectList:[],
+          planProjectList:[],
+          imgModal:false,
+          catagory:'',
+          imgName:'',
+          uploadedImg:'',
+          selectedImg:'',
+          isLoading:false
         };
        
     }
     componentDidMount(){
       this.getAllProjects()
+      this.getInteriorProjects()
     }
     getAllProjects = ()=>{
       http
@@ -51,6 +62,53 @@ class projectImage extends Component{
       .then((resp) => resp.json())
       .then(data =>{
         console.log(data)
+        this.setState({
+          projectList:data.projectList
+        })
+        })
+    }
+    getInteriorProjects = ()=>{
+      http
+      .adminGet("getAllProject?catagory=interior")
+      .then((resp) => resp.json())
+      .then(data =>{
+        console.log(data)
+        this.setState({
+          interiorProjectList:data.projectList
+        })
+        })
+    }
+    getExteriorProjects = ()=>{
+      http
+      .adminGet("getAllProject?catagory=exterior")
+      .then((resp) => resp.json())
+      .then(data =>{
+        console.log(data)
+        this.setState({
+          exteriorProjectList:data.projectList
+        })
+        })
+    }
+    getConsultantProjects = ()=>{
+      http
+      .adminGet("getAllProject?catagory=consultant")
+      .then((resp) => resp.json())
+      .then(data =>{
+        console.log(data)
+        this.setState({
+          consultantProjectList:data.projectList
+        })
+        })
+    }
+    getPlanProjects = ()=>{
+      http
+      .adminGet("getAllProject?catagory=plan")
+      .then((resp) => resp.json())
+      .then(data =>{
+        console.log(data)
+        this.setState({
+          planProjectList:data.projectList
+        })
         })
     }
     toggle = (tab)=> {
@@ -68,14 +126,52 @@ class projectImage extends Component{
         [name]:value
       })
     }
+    imgOpen = ()=>{
+      this.setState({
+        imgModal:!this.state.imgModal
+      })
+    }
+    handleChange = (e)=>{
+      const target = e.target
+      const name = target.name
+      const value = target.value
+      this.setState({
+        [name]:value
+      })
+    }
+    imageChange = (e) =>{
+      console.log(e.target.files[0])
+      this.setState({
+        uploadedImg:e.target.files[0]
+      })
+      var reader = new FileReader();
+      reader.readAsDataURL(e.target.files[0]);
+      reader.onload = (e) =>{
+        var url = e.target.result;
+        this.setState({
+          selectedImg:url
+        })
+        console.log(this.state.selectedImg)
+      }
+    }
+    submitProject = () =>{
+      console.log(this.state.uploadedImg)
+      this.setState({
+        isLoading:true
+      })
+      var formData = new FormData()
+      formData.append("galaryImages",this.state.uploadedImg)
+
+    }
     render(){
-      const {projectList,allSearch}=this.state
-      const baseUrl = http.url
+      const {projectList,allSearch,interiorProjectList,exteriorProjectList,consultantProjectList,planProjectList,selectedImg,isLoading,uploadedImg}=this.state
+      const baseUrl = http.url()
         return(
             <>
             <Header />
             <Container className="mt--7" fluid>
             <ToastContainer />
+            <div class="mt-5"></div>
             <Row>
             <div className="col">
             <Card className="shadow container bg-secondary"> 
@@ -88,6 +184,7 @@ class projectImage extends Component{
                     <Button
                       color="primary"
                       size="sm"
+                      onClick={this.imgOpen}
                     >
                       Add Image
                     </Button>
@@ -142,6 +239,7 @@ class projectImage extends Component{
           <TabPane tabId="1">
             <Row>
               <Col sm="12">
+              <div className="mt-5"></div>
                 <Row>
                   <Col md='6'>
                   <h4>All Project</h4>
@@ -158,8 +256,9 @@ class projectImage extends Component{
               </Col>
             </Row>
             <Row>
-              {
-                projectList.map(projects =>{
+              {projectList.filter(data=>data.name.toLowerCase().includes(allSearch.toLowerCase())).map(projects =>{
+                console.log(projects.id)
+                return(
                   <Col sm="12" md="4" lg="3" className="mt-3" key={projects.id}>
                                     <Card>
                                         <CardBody>
@@ -170,26 +269,204 @@ class projectImage extends Component{
                                         </CardFooter>
                                     </Card>
                                 </Col>
-                })
+              )})}
+              <Col md="6">
+              {
+                
+                interiorProjectList.length==0?
+                <div>
+                  <h4>No Data Found</h4>
+                </div>
+                :null
               }
+              </Col>
             </Row>
           </TabPane>
           <TabPane tabId="2">
+          <Row>
+              <Col sm="12">
+              <div className="mt-5"></div>
+                <Row>
+                  <Col md='6'>
+                  <h4>Interior</h4>
+                  </Col>
+                  <Col md='6'>
+                  <input className="form-control-alternative form-control" 
+                  type="text" onChange={this.searchChange} 
+                  placeholder="Search"
+                  value={this.state.allSearch}
+                  name="allSearch"
+                   />
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
             <Row>
-              <Col sm="6">
-                <Card body>
-                  <CardTitle>Special Title Treatment</CardTitle>
-                  <CardText>With supporting text below as a natural lead-in to additional content.</CardText>
-                  <Button>Go somewhere</Button>
-                </Card>
+              {interiorProjectList.filter(data=>data.name.toLowerCase().includes(allSearch.toLowerCase())).map(projects =>{
+                console.log(projects.id)
+                return(
+                  <Col sm="12" md="4" lg="3" className="mt-3" key={projects.id}>
+                                    <Card>
+                                        <CardBody>
+                                            <img alt={projects.name} src={baseUrl+projects.image} height="185" width="185" />
+                                        </CardBody>
+                                        <CardFooter>
+                                            {projects.name}
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+              )})}
+              <Col md="6">
+              {
+                
+                projectList.length==0?
+                <div>
+                  <h4>No Data Found</h4>
+                </div>
+                :null
+              }
               </Col>
-              <Col sm="6">
-                <Card body>
-                  <CardTitle>Special Title Treatment</CardTitle>
-                  <CardText>With supporting text below as a natural lead-in to additional content.</CardText>
-                  <Button>Go somewhere</Button>
-                </Card>
+            </Row>
+          </TabPane>
+          <TabPane tabId="3">
+          <Row>
+              <Col sm="12">
+              <div className="mt-5"></div>
+                <Row>
+                  <Col md='6'>
+                  <h4>Exterior</h4>
+                  </Col>
+                  <Col md='6'>
+                  <input className="form-control-alternative form-control" 
+                  type="text" onChange={this.searchChange} 
+                  placeholder="Search"
+                  value={this.state.allSearch}
+                  name="allSearch"
+                   />
+                  </Col>
+                </Row>
               </Col>
+            </Row>
+            <Row>
+              {exteriorProjectList.filter(data=>data.name.toLowerCase().includes(allSearch.toLowerCase())).map(projects =>{
+                console.log(projects.id)
+                return(
+                  <Col sm="12" md="4" lg="3" className="mt-3" key={projects.id}>
+                                    <Card>
+                                        <CardBody>
+                                            <img alt={projects.name} src={baseUrl+projects.image} height="185" width="185" />
+                                        </CardBody>
+                                        <CardFooter>
+                                            {projects.name}
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+              )})}
+              <Col md="6">
+              {
+                
+                exteriorProjectList.length==0?
+                <div>
+                  <h4>No Data Found</h4>
+                </div>
+                :null
+              }
+              </Col>
+            </Row>
+          </TabPane>
+          <TabPane tabId="4">
+          <Row>
+              <Col sm="12">
+              <div className="mt-5"></div>
+                <Row>
+                  <Col md='6'>
+                  <h4>Consultant</h4>
+                  </Col>
+                  <Col md='6'>
+                  <input className="form-control-alternative form-control" 
+                  type="text" onChange={this.searchChange} 
+                  placeholder="Search"
+                  value={this.state.allSearch}
+                  name="allSearch"
+                   />
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
+            <Row>
+              {consultantProjectList.filter(data=>data.name.toLowerCase().includes(allSearch.toLowerCase())).map(projects =>{
+                console.log(projects.id)
+                return(
+                  <Col sm="12" md="4" lg="3" className="mt-3" key={projects.id}>
+                                    <Card>
+                                        <CardBody>
+                                            <img alt={projects.name} src={baseUrl+projects.image} height="185" width="185" />
+                                        </CardBody>
+                                        <CardFooter>
+                                            {projects.name}
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+              )})}
+              <Col md="6">
+              {
+                
+                consultantProjectList.length==0?
+                <div>
+                  <h4>No Data Found</h4>
+                </div>
+                :null
+              }
+              </Col>
+            </Row>
+          </TabPane>
+          <TabPane tabId="5">
+          <Row>
+              <Col sm="12">
+              <div className="mt-5"></div>
+                <Row>
+                  <Col md='6'>
+                  <h4>Plan</h4>
+                  </Col>
+                  <Col md='6'>
+                  <input className="form-control-alternative form-control" 
+                  type="text" onChange={this.searchChange} 
+                  placeholder="Search"
+                  value={this.state.allSearch}
+                  name="allSearch"
+                   />
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
+            <Row>
+              {planProjectList.filter(data=>data.name.toLowerCase().includes(allSearch.toLowerCase())).map(projects =>{
+                console.log(projects.id)
+                return(
+                  <Col sm="12" md="4" lg="3" className="mt-3" key={projects.id}>
+                                    <Card>
+                                        <CardBody>
+                                            <img alt={projects.name} src={baseUrl+projects.image} height="185" width="185" />
+                                        </CardBody>
+                                        <CardFooter>
+                                            {projects.name}
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+              )})}
+              
+              <Col md="6">
+              {
+                
+                
+                planProjectList.length==0?
+                <div>
+                  <h4>No Data Found</h4>
+                </div>
+                :null
+              }
+              </Col>
+            
             </Row>
           </TabPane>
         </TabContent>
@@ -199,6 +476,46 @@ class projectImage extends Component{
             </div>
             </Row>
             </Container>
+            <Modal isOpen={this.state.imgModal} toggle={this.imgOpen} className={this.className}>
+            <ModalHeader toggle={this.imgOpen}>Add Image</ModalHeader>
+            <ModalBody className="bg-secondary shadow">
+              <Row>
+              <Col sm="12" md="6" lg="6">
+              <FormGroup>
+                            <Label for="exampleSelect">Select Catagory</Label>
+                            <Input type="select" name="catagory" value={this.state.catagory} onChange={this.handleChange}>
+                            <option selected> --Select Catagory--</option>    
+                            <option value="plan" >Plan</option>
+                            <option value="interior" >Interior</option>
+                            <option value="exterior" >Exterior</option>
+                            <option value="consultant" >Consultant</option>
+                            </Input>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="exampleEmail">Image Name</Label>
+                            <Input type="text" name="imgName" value={this.state.imgName} onChange={this.handleChange} placeholder="Enter Name of Image" />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="exampleEmail">Upload Image</Label>
+                            <input id="fileUpload" type="file" name="uploadedImg" onChange={this.imageChange} accept="image/*" />
+                            
+                        </FormGroup>
+              </Col>
+              <Col  sm="12" md="6" lg="6">
+              <img src={
+                       selectedImg == ""
+                       ? require("assets/img/JBA/paste.png").default                         
+                       : selectedImg
+                     
+                    } width="100%" />
+              </Col>
+              </Row>
+            </ModalBody>
+            <ModalFooter>
+          <Button color="primary" onClick={this.submitProject} disabled={isLoading}> {isLoading ? (<Spinner size="sm" color="dark" />) : null }Add Image</Button>{' '}
+          <Button color="secondary" onClick={this.imgOpen}>Cancel</Button>
+        </ModalFooter>
+            </Modal>
         </>
         )
     }
