@@ -6,6 +6,7 @@ import Login from "views/examples/Login.js";
 import Tables from "views/examples/Tables.js";
 import Icons from "views/examples/Icons.js";
 import projectImage from "views/examples/projectImage";
+import Clients from "views/examples/Clients";
 
 var routes = [
   {
@@ -59,9 +60,16 @@ var routes = [
   },
   {
     path: "/projects",
-    name: "projectImage",
-    icon: "ni ni-circle-08 text-pink",
+    name: "Project Images",
+    icon: "ni ni-album-2",
     component: projectImage,
+    layout: "/admin",
+  },
+  {
+    path: "/clients",
+    name: "Clients",
+    icon: "ni ni-single-02",
+    component: Clients,
     layout: "/admin",
   }
 ];

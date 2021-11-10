@@ -55,6 +55,9 @@ class projectImage extends Component{
     componentDidMount(){
       this.getAllProjects()
       this.getInteriorProjects()
+      this.getExteriorProjects()
+      this.getConsultantProjects()
+      this.getPlanProjects()
     }
     getAllProjects = ()=>{
       http
@@ -87,6 +90,7 @@ class projectImage extends Component{
         this.setState({
           exteriorProjectList:data.projectList
         })
+        console.log(this.state.exteriorProjectList)
         })
     }
     getConsultantProjects = ()=>{
@@ -161,8 +165,39 @@ class projectImage extends Component{
       })
       var formData = new FormData()
       formData.append("galaryImages",this.state.uploadedImg)
-
+      formData.append("name",this.state.imgName)
+      formData.append("catagory",this.state.catagory)
+      if(this.state.imgName ==""){
+        toast.error("Enter the project name")
+      }else if(this.state.catagory == ""){
+        toast.error("Select the Catagory")
+      }else if(this.state.selectedImg == ""){
+        toast.error("Select image")
     }
+    else{
+      http
+      .postFormData("galaryImg",formData)
+      .then((resp)=>resp.json())
+      .then(data =>{
+        console.log(data)
+        if(data.success){
+          toast.success(data.message)
+          this.setState({
+            isLoading:false,
+            imgModal:false,
+            imgName:'',
+            catagory:'',
+            uploadedImg:'',
+            selectedImg:''
+
+          })
+        }
+        else{
+          toast.error(data.message)
+        }
+      })
+    }
+  }
     render(){
       const {projectList,allSearch,interiorProjectList,exteriorProjectList,consultantProjectList,planProjectList,selectedImg,isLoading,uploadedImg}=this.state
       const baseUrl = http.url()
