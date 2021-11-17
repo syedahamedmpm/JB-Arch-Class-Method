@@ -80,8 +80,12 @@ class Clients extends Component{
             readInterior:data.clients
           })
           console.log(this.state.readInterior)
-          var count = data.clients.readingStatus
-          console.log(count)
+          var count = data?.clients?.reduce(function(n, val) {
+            console.log(n)
+            return n + (val?.readingStatus == "unread");
+        }, 0);
+        
+        console.log(count)
         })
       }
       getExteriorProjects = () =>{
@@ -94,6 +98,7 @@ class Clients extends Component{
             readExterior:data.clients
           })
           console.log(this.state.readExterior)
+         
         })
       }
       getConsultantsProjects = () =>{
